@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Wind, Brain, BookOpen, Sparkles, Leaf, X, Play, Pause } from 'lucide-react';
+import { ArrowLeft, Wind, Brain, BookOpen, Sparkles, Leaf, X, Play, Pause, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useApp } from '@/contexts/AppContext';
 import { Intervention } from '@/types/mental-health';
+import { BreathingExercise478 } from './exercises/BreathingExercise478';
+import { ThoughtChallenge } from './exercises/ThoughtChallenge';
+import { GratitudeMoment } from './exercises/GratitudeMoment';
+import { GroundingExercise } from './exercises/GroundingExercise';
 
 const interventions: Intervention[] = [
   {
@@ -62,24 +66,30 @@ const iconMap = {
   book: BookOpen,
 };
 
-function BreathingExercise({ onClose }: { onClose: () => void }) {
+type Phase = 'inhale' | 'hold1' | 'exhale' | 'hold2';
+
+function BoxBreathingExercise({ onClose }: { onClose: () => void }) {
   const [isActive, setIsActive] = useState(false);
-  const [phase, setPhase] = useState<'inhale' | 'hold1' | 'exhale' | 'hold2'>('inhale');
+  const [phase, setPhase] = useState<Phase>('inhale');
   const [count, setCount] = useState(4);
+  const [cycles, setCycles] = useState(0);
+  const [totalTime, setTotalTime] = useState(0);
 
   React.useEffect(() => {
     if (!isActive) return;
     
     const timer = setInterval(() => {
+      setTotalTime(prev => prev + 1);
       setCount(prev => {
         if (prev <= 1) {
-          // Move to next phase
           setPhase(current => {
             switch (current) {
               case 'inhale': return 'hold1';
               case 'hold1': return 'exhale';
               case 'exhale': return 'hold2';
-              case 'hold2': return 'inhale';
+              case 'hold2': 
+                setCycles(c => c + 1);
+                return 'inhale';
             }
           });
           return 4;
@@ -96,6 +106,20 @@ function BreathingExercise({ onClose }: { onClose: () => void }) {
     hold1: 'Hold',
     exhale: 'Breathe Out',
     hold2: 'Hold',
+  };
+
+  const reset = () => {
+    setIsActive(false);
+    setPhase('inhale');
+    setCount(4);
+    setCycles(0);
+    setTotalTime(0);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -119,12 +143,25 @@ function BreathingExercise({ onClose }: { onClose: () => void }) {
         animate={{ scale: 1 }}
         className="text-center"
       >
-        <h2 className="text-2xl font-bold mb-8 text-foreground">Box Breathing</h2>
+        <h2 className="text-2xl font-bold mb-2 text-foreground">Box Breathing</h2>
+        <p className="text-muted-foreground mb-6">Equal intervals for calm and focus</p>
+
+        {/* Stats */}
+        <div className="flex justify-center gap-8 mb-8">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-primary">{cycles}</p>
+            <p className="text-xs text-muted-foreground">Cycles</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-primary">{formatTime(totalTime)}</p>
+            <p className="text-xs text-muted-foreground">Time</p>
+          </div>
+        </div>
         
         <div className="relative mb-8">
           <motion.div
             animate={{
-              scale: isActive ? (phase === 'inhale' ? 1.3 : phase === 'exhale' ? 1 : undefined) : 1,
+              scale: isActive ? (phase === 'inhale' ? 1.3 : phase === 'exhale' ? 1 : 1.15) : 1,
             }}
             transition={{ duration: 4, ease: 'easeInOut' }}
             className={`w-48 h-48 mx-auto rounded-full flex items-center justify-center transition-colors duration-1000 ${
@@ -134,7 +171,14 @@ function BreathingExercise({ onClose }: { onClose: () => void }) {
             }`}
           >
             <div className="text-center">
-              <div className="text-5xl font-bold text-foreground">{count}</div>
+              <motion.div
+                key={count}
+                initial={{ scale: 1.2, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="text-5xl font-bold text-foreground"
+              >
+                {count}
+              </motion.div>
               <div className="text-lg text-muted-foreground mt-2">
                 {isActive ? phaseText[phase] : 'Ready'}
               </div>
@@ -146,26 +190,49 @@ function BreathingExercise({ onClose }: { onClose: () => void }) {
               className="absolute inset-0 rounded-full border-4 border-primary/30"
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ duration: 4, repeat: Infinity }}
+              style={{ width: '12rem', height: '12rem', margin: 'auto' }}
             />
           )}
         </div>
 
-        <Button
-          variant={isActive ? 'soft' : 'calm'}
-          size="xl"
-          onClick={() => {
-            setIsActive(!isActive);
-            if (!isActive) {
-              setPhase('inhale');
-              setCount(4);
-            }
-          }}
-        >
-          {isActive ? <Pause className="w-5 h-5 mr-2" /> : <Play className="w-5 h-5 mr-2" />}
-          {isActive ? 'Pause' : 'Start'}
-        </Button>
+        {/* Phase indicator */}
+        <div className="flex justify-center gap-4 mb-8">
+          {(['inhale', 'hold1', 'exhale', 'hold2'] as Phase[]).map((p) => (
+            <div
+              key={p}
+              className={`flex flex-col items-center ${phase === p && isActive ? 'opacity-100' : 'opacity-40'}`}
+            >
+              <div className={`w-3 h-3 rounded-full mb-1 ${phase === p && isActive ? 'bg-primary' : 'bg-border'}`} />
+              <span className="text-xs">{p === 'hold1' || p === 'hold2' ? 'Hold' : p === 'inhale' ? 'In' : 'Out'}</span>
+              <span className="text-xs text-muted-foreground">4s</span>
+            </div>
+          ))}
+        </div>
 
-        <p className="text-muted-foreground mt-8 max-w-sm">
+        <div className="flex gap-3 justify-center">
+          <Button
+            variant={isActive ? 'soft' : 'calm'}
+            size="xl"
+            onClick={() => {
+              setIsActive(!isActive);
+              if (!isActive) {
+                setPhase('inhale');
+                setCount(4);
+              }
+            }}
+          >
+            {isActive ? <Pause className="w-5 h-5 mr-2" /> : <Play className="w-5 h-5 mr-2" />}
+            {isActive ? 'Pause' : 'Start'}
+          </Button>
+          
+          {(cycles > 0 || totalTime > 0) && (
+            <Button variant="ghost" size="icon" onClick={reset}>
+              <RotateCcw className="w-5 h-5" />
+            </Button>
+          )}
+        </div>
+
+        <p className="text-muted-foreground mt-8 max-w-sm text-sm">
           Breathe in for 4 seconds, hold for 4 seconds, breathe out for 4 seconds, hold for 4 seconds. Repeat.
         </p>
       </motion.div>
@@ -261,28 +328,23 @@ export function InterventionsScreen() {
             {groupedInterventions.grounding.map((intervention) => {
               const Icon = iconMap[intervention.icon as keyof typeof iconMap] || Leaf;
               return (
-                <Card key={intervention.id} variant="mood">
+                <Card 
+                  key={intervention.id} 
+                  variant="mood"
+                  className="cursor-pointer hover:shadow-medium transition-all"
+                  onClick={() => setSelectedExercise(intervention.id)}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4 mb-3">
                       <div className="w-10 h-10 rounded-xl bg-lavender/20 flex items-center justify-center">
                         <Icon className="w-5 h-5 text-lavender" />
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <h4 className="font-medium text-foreground">{intervention.title}</h4>
-                        <p className="text-sm text-muted-foreground">{intervention.duration} min</p>
+                        <p className="text-sm text-muted-foreground">{intervention.duration} min • Interactive</p>
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-3">{intervention.description}</p>
-                    <div className="space-y-2">
-                      {intervention.steps?.map((step, i) => (
-                        <div key={i} className="flex items-center gap-2 text-sm">
-                          <span className="w-5 h-5 rounded-full bg-lavender/20 flex items-center justify-center text-xs text-lavender font-medium">
-                            {i + 1}
-                          </span>
-                          <span className="text-foreground">{step}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <p className="text-sm text-muted-foreground">{intervention.description}</p>
                   </CardContent>
                 </Card>
               );
@@ -304,13 +366,18 @@ export function InterventionsScreen() {
             {[...groupedInterventions.cbt, ...groupedInterventions.mindfulness].map((intervention) => {
               const Icon = iconMap[intervention.icon as keyof typeof iconMap] || Brain;
               return (
-                <Card key={intervention.id} variant="default" className="cursor-pointer hover:shadow-medium transition-all">
+                <Card 
+                  key={intervention.id} 
+                  variant="default" 
+                  className="cursor-pointer hover:shadow-medium transition-all"
+                  onClick={() => setSelectedExercise(intervention.id)}
+                >
                   <CardContent className="p-4">
                     <div className="w-10 h-10 rounded-xl bg-coral-light flex items-center justify-center mb-3">
                       <Icon className="w-5 h-5 text-coral" />
                     </div>
                     <h4 className="font-medium text-foreground text-sm">{intervention.title}</h4>
-                    <p className="text-xs text-muted-foreground mt-1">{intervention.duration} min</p>
+                    <p className="text-xs text-muted-foreground mt-1">{intervention.duration} min • AI-powered</p>
                   </CardContent>
                 </Card>
               );
@@ -319,9 +386,22 @@ export function InterventionsScreen() {
         </motion.div>
       </div>
 
+      {/* Exercise Modals */}
       <AnimatePresence>
         {selectedExercise === 'box-breathing' && (
-          <BreathingExercise onClose={() => setSelectedExercise(null)} />
+          <BoxBreathingExercise onClose={() => setSelectedExercise(null)} />
+        )}
+        {selectedExercise === '478-breathing' && (
+          <BreathingExercise478 onClose={() => setSelectedExercise(null)} />
+        )}
+        {selectedExercise === '5-senses' && (
+          <GroundingExercise onClose={() => setSelectedExercise(null)} />
+        )}
+        {selectedExercise === 'thought-challenge' && (
+          <ThoughtChallenge onClose={() => setSelectedExercise(null)} />
+        )}
+        {selectedExercise === 'gratitude' && (
+          <GratitudeMoment onClose={() => setSelectedExercise(null)} />
         )}
       </AnimatePresence>
     </div>

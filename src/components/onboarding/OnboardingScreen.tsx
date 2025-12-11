@@ -17,8 +17,8 @@ const steps = [
   },
   {
     id: 'privacy',
-    title: 'Your Privacy Matters',
-    description: 'Your data is encrypted and never shared. You control what you track and share.',
+    title: 'Data Security',
+    description: 'Your data is encrypted and stays on your device. AI analysis is optional.',
     icon: Shield,
   },
   {

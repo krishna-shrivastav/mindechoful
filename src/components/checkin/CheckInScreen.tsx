@@ -1,24 +1,32 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Check, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Sparkles, Camera, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { useApp } from '@/contexts/AppContext';
 import { MOOD_CONFIG, MoodLevel } from '@/types/mental-health';
+import { FacialAnalysis } from './FacialAnalysis';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const moodOptions: MoodLevel[] = ['great', 'good', 'okay', 'low', 'struggling'];
 
 export function CheckInScreen() {
   const { addCheckIn, setCurrentView } = useApp();
+  const { toast } = useToast();
   const [step, setStep] = useState(0);
   const [selectedMood, setSelectedMood] = useState<MoodLevel | null>(null);
   const [stressLevel, setStressLevel] = useState([5]);
   const [notes, setNotes] = useState('');
   const [isComplete, setIsComplete] = useState(false);
+  const [showFacialAnalysis, setShowFacialAnalysis] = useState(false);
+  const [facialResult, setFacialResult] = useState<{ emotion: string; stress: string; aiInsight?: string } | null>(null);
+  const [aiInsight, setAiInsight] = useState<string | null>(null);
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (selectedMood) {
       addCheckIn({
         date: new Date(),
@@ -26,8 +34,40 @@ export function CheckInScreen() {
         stressLevel: stressLevel[0],
         notes: notes || undefined,
       });
+      
+      // Get AI mood insight
+      setIsLoadingAI(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('analyze-mood', {
+          body: {
+            type: 'mood-insight',
+            mood: selectedMood,
+            stressLevel: stressLevel[0],
+            text: notes,
+            facialExpression: facialResult,
+          },
+        });
+
+        if (!error && data?.analysis) {
+          setAiInsight(data.analysis);
+        }
+      } catch (err) {
+        console.error('AI insight error:', err);
+      } finally {
+        setIsLoadingAI(false);
+      }
+      
       setIsComplete(true);
     }
+  };
+
+  const handleFacialResult = (result: { emotion: string; stress: string; aiInsight?: string }) => {
+    setFacialResult(result);
+    setShowFacialAnalysis(false);
+    toast({
+      title: 'Expression analyzed',
+      description: `Detected: ${result.emotion} (${result.stress} stress)`,
+    });
   };
 
   const getRecommendation = () => {
@@ -47,7 +87,7 @@ export function CheckInScreen() {
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
+          className="text-center max-w-md"
         >
           <motion.div
             initial={{ scale: 0 }}
@@ -62,7 +102,44 @@ export function CheckInScreen() {
           <div className="text-6xl my-6 animate-float">
             {selectedMood && MOOD_CONFIG[selectedMood].emoji}
           </div>
-          <div className="flex gap-3 justify-center mt-8">
+
+          {/* AI Insight */}
+          {isLoadingAI && (
+            <div className="flex items-center justify-center gap-2 text-muted-foreground mb-4">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span>Analyzing your mood...</span>
+            </div>
+          )}
+
+          {aiInsight && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <Card variant="glass" className="mb-6 text-left">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                    <span className="font-medium text-foreground">AI Insight</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground whitespace-pre-line">{aiInsight}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {facialResult && (
+            <Card variant="calm" className="mb-6 text-left">
+              <CardContent className="p-4">
+                <p className="text-sm text-muted-foreground mb-1">Facial Analysis Result</p>
+                <p className="font-medium text-foreground">
+                  {facialResult.emotion} • {facialResult.stress} stress
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="flex gap-3 justify-center mt-6">
             <Button variant="soft" onClick={() => setCurrentView('home')}>
               Go Home
             </Button>
@@ -127,6 +204,16 @@ export function CheckInScreen() {
                   <p className="text-muted-foreground mb-6">
                     There's no right or wrong answer. Just be honest with yourself.
                   </p>
+                  
+                  {/* Facial Analysis Button */}
+                  <Button
+                    variant="soft"
+                    className="w-full mb-4"
+                    onClick={() => setShowFacialAnalysis(true)}
+                  >
+                    <Camera className="w-4 h-4 mr-2" />
+                    {facialResult ? `Analyzed: ${facialResult.emotion}` : 'Analyze with Camera'}
+                  </Button>
                   
                   <div className="space-y-3">
                     {moodOptions.map((mood) => {
@@ -262,7 +349,7 @@ export function CheckInScreen() {
                   />
                   
                   <p className="text-xs text-muted-foreground mt-3">
-                    Your notes are private and help personalize your experience.
+                    Your notes are private and will be analyzed by AI to provide personalized insights.
                   </p>
                 </CardContent>
               </Card>
@@ -288,6 +375,16 @@ export function CheckInScreen() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Facial Analysis Modal */}
+      <AnimatePresence>
+        {showFacialAnalysis && (
+          <FacialAnalysis
+            onResult={handleFacialResult}
+            onClose={() => setShowFacialAnalysis(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
