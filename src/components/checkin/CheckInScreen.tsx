@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Check, Sparkles, Camera, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Sparkles, Camera, Mic, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,6 +8,7 @@ import { Slider } from '@/components/ui/slider';
 import { useApp } from '@/contexts/AppContext';
 import { MOOD_CONFIG, MoodLevel } from '@/types/mental-health';
 import { FacialAnalysis } from './FacialAnalysis';
+import { VoiceCheckIn } from './VoiceCheckIn';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -22,7 +23,9 @@ export function CheckInScreen() {
   const [notes, setNotes] = useState('');
   const [isComplete, setIsComplete] = useState(false);
   const [showFacialAnalysis, setShowFacialAnalysis] = useState(false);
+  const [showVoiceCheckIn, setShowVoiceCheckIn] = useState(false);
   const [facialResult, setFacialResult] = useState<{ emotion: string; stress: string; aiInsight?: string } | null>(null);
+  const [voiceResult, setVoiceResult] = useState<{ transcript: string; emotion: string; stress: string; aiInsight?: string } | null>(null);
   const [aiInsight, setAiInsight] = useState<string | null>(null);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
 
@@ -66,6 +69,15 @@ export function CheckInScreen() {
     setShowFacialAnalysis(false);
     toast({
       title: 'Expression analyzed',
+      description: `Detected: ${result.emotion} (${result.stress} stress)`,
+    });
+  };
+
+  const handleVoiceResult = (result: { transcript: string; emotion: string; stress: string; aiInsight?: string }) => {
+    setVoiceResult(result);
+    setShowVoiceCheckIn(false);
+    toast({
+      title: 'Voice analyzed',
       description: `Detected: ${result.emotion} (${result.stress} stress)`,
     });
   };
@@ -205,15 +217,23 @@ export function CheckInScreen() {
                     There's no right or wrong answer. Just be honest with yourself.
                   </p>
                   
-                  {/* Facial Analysis Button */}
-                  <Button
-                    variant="soft"
-                    className="w-full mb-4"
-                    onClick={() => setShowFacialAnalysis(true)}
-                  >
-                    <Camera className="w-4 h-4 mr-2" />
-                    {facialResult ? `Analyzed: ${facialResult.emotion}` : 'Analyze with Camera'}
-                  </Button>
+                  {/* Facial & Voice Analysis Buttons */}
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <Button
+                      variant="soft"
+                      onClick={() => setShowFacialAnalysis(true)}
+                    >
+                      <Camera className="w-4 h-4 mr-2" />
+                      {facialResult ? 'Analyzed ✓' : 'Camera'}
+                    </Button>
+                    <Button
+                      variant="soft"
+                      onClick={() => setShowVoiceCheckIn(true)}
+                    >
+                      <Mic className="w-4 h-4 mr-2" />
+                      {voiceResult ? 'Analyzed ✓' : 'Voice'}
+                    </Button>
+                  </div>
                   
                   <div className="space-y-3">
                     {moodOptions.map((mood) => {
@@ -382,6 +402,16 @@ export function CheckInScreen() {
           <FacialAnalysis
             onResult={handleFacialResult}
             onClose={() => setShowFacialAnalysis(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Voice Check-In Modal */}
+      <AnimatePresence>
+        {showVoiceCheckIn && (
+          <VoiceCheckIn
+            onResult={handleVoiceResult}
+            onClose={() => setShowVoiceCheckIn(false)}
           />
         )}
       </AnimatePresence>

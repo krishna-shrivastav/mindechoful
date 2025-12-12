@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { 
   Sun, Moon, Cloud, Heart, Brain, Wind, 
   BookOpen, History, Settings, AlertTriangle,
-  Sparkles, TrendingUp, Calendar
+  Sparkles, TrendingUp, Calendar, BarChart3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,7 +21,7 @@ const quickActions = [
   { id: 'checkin', label: 'Check-in', icon: Heart, color: 'sage', view: 'checkin' as const },
   { id: 'breathe', label: 'Breathe', icon: Wind, color: 'calm-blue', view: 'interventions' as const },
   { id: 'journal', label: 'Journal', icon: BookOpen, color: 'lavender', view: 'journal' as const },
-  { id: 'history', label: 'History', icon: History, color: 'coral', view: 'history' as const },
+  { id: 'reports', label: 'Reports', icon: BarChart3, color: 'coral', view: 'reports' as const },
 ];
 
 export function HomeScreen() {

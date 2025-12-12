@@ -10,7 +10,7 @@ interface AppContextType {
   addCheckIn: (checkIn: Omit<CheckIn, 'id'>) => void;
   journalEntries: JournalEntry[];
   addJournalEntry: (entry: Omit<JournalEntry, 'id'>) => void;
-  currentView: 'onboarding' | 'home' | 'checkin' | 'interventions' | 'journal' | 'history' | 'settings' | 'crisis';
+  currentView: 'onboarding' | 'home' | 'checkin' | 'interventions' | 'journal' | 'history' | 'settings' | 'crisis' | 'reports';
   setCurrentView: (view: AppContextType['currentView']) => void;
   completeOnboarding: (name: string, emergencyContacts: EmergencyContact[]) => void;
 }
