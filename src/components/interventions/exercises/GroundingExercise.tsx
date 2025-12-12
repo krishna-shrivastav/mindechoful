@@ -1,28 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowRight, Check, Leaf, Eye, Hand, Ear, Wind, Coffee } from 'lucide-react';
+import { X, ArrowRight, Check, Leaf, Eye, Hand, Ear, Wind, Coffee, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface GroundingExerciseProps {
   onClose: () => void;
 }
 
-const SENSES = [
-  { count: 5, sense: 'SEE', icon: Eye, color: 'sage', question: 'Name 5 things you can see right now' },
-  { count: 4, sense: 'TOUCH', icon: Hand, color: 'calm-blue', question: 'Name 4 things you can physically feel' },
-  { count: 3, sense: 'HEAR', icon: Ear, color: 'lavender', question: 'Name 3 things you can hear' },
-  { count: 2, sense: 'SMELL', icon: Wind, color: 'coral', question: 'Name 2 things you can smell' },
-  { count: 1, sense: 'TASTE', icon: Coffee, color: 'amber', question: 'Name 1 thing you can taste' },
-];
-
 export function GroundingExercise({ onClose }: GroundingExerciseProps) {
+  const { t } = useLanguage();
   const [currentSense, setCurrentSense] = useState(0);
-  const [responses, setResponses] = useState<string[][]>(SENSES.map(s => Array(s.count).fill('')));
   const [currentInput, setCurrentInput] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [timer, setTimer] = useState(0);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+
+  const SENSES = [
+    { count: 5, sense: t('grounding.see'), icon: Eye, color: 'sage', question: t('grounding.seeQuestion') },
+    { count: 4, sense: t('grounding.touch'), icon: Hand, color: 'calm-blue', question: t('grounding.touchQuestion') },
+    { count: 3, sense: t('grounding.hear'), icon: Ear, color: 'lavender', question: t('grounding.hearQuestion') },
+    { count: 2, sense: t('grounding.smell'), icon: Wind, color: 'coral', question: t('grounding.smellQuestion') },
+    { count: 1, sense: t('grounding.taste'), icon: Coffee, color: 'amber', question: t('grounding.tasteQuestion') },
+  ];
+
+  const [responses, setResponses] = useState<string[][]>(SENSES.map(s => Array(s.count).fill('')));
+
+  const speakText = (text: string) => {
+    if (!voiceEnabled || typeof window === 'undefined' || !window.speechSynthesis) return;
+    
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 0.7;
+    window.speechSynthesis.speak(utterance);
+  };
 
   useEffect(() => {
     if (isComplete) return;
@@ -33,6 +48,18 @@ export function GroundingExercise({ onClose }: GroundingExerciseProps) {
 
     return () => clearInterval(interval);
   }, [isComplete]);
+
+  useEffect(() => {
+    if (!isComplete && SENSES[currentSense]) {
+      speakText(SENSES[currentSense].question);
+    }
+  }, [currentSense, isComplete, voiceEnabled]);
+
+  useEffect(() => {
+    return () => {
+      window.speechSynthesis?.cancel();
+    };
+  }, []);
 
   const sense = SENSES[currentSense];
   const senseResponses = responses[currentSense];
@@ -52,6 +79,7 @@ export function GroundingExercise({ onClose }: GroundingExerciseProps) {
       setCurrentInput(0);
     } else {
       setIsComplete(true);
+      speakText(t('voice.complete'));
     }
   };
 
@@ -109,8 +137,8 @@ export function GroundingExercise({ onClose }: GroundingExerciseProps) {
             >
               <Leaf className="w-10 h-10 text-primary" />
             </motion.div>
-            <h2 className="text-2xl font-bold text-foreground mb-2">You're Grounded!</h2>
-            <p className="text-muted-foreground">Completed in {formatTime(timer)}</p>
+            <h2 className="text-2xl font-bold text-foreground mb-2">{t('grounding.complete')}</h2>
+            <p className="text-muted-foreground">{t('grounding.completedIn')} {formatTime(timer)}</p>
           </div>
 
           {/* Summary */}
@@ -153,14 +181,13 @@ export function GroundingExercise({ onClose }: GroundingExerciseProps) {
           <Card variant="glass" className="mb-6">
             <CardContent className="p-4 text-center">
               <p className="text-muted-foreground">
-                The 5-4-3-2-1 technique helps bring you back to the present moment 
-                by engaging all five senses. Use this whenever you feel anxious or overwhelmed.
+                {t('grounding.tip')}
               </p>
             </CardContent>
           </Card>
 
           <Button onClick={onClose} className="w-full" size="lg">
-            Done
+            {t('common.done')}
           </Button>
         </motion.div>
       </motion.div>
@@ -184,6 +211,15 @@ export function GroundingExercise({ onClose }: GroundingExerciseProps) {
         onClick={onClose}
       >
         <X className="w-6 h-6" />
+      </Button>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute top-6 left-6"
+        onClick={() => setVoiceEnabled(!voiceEnabled)}
+      >
+        {voiceEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
       </Button>
 
       <div className="flex-1 flex flex-col max-w-md mx-auto w-full pt-12">
@@ -219,13 +255,13 @@ export function GroundingExercise({ onClose }: GroundingExerciseProps) {
               >
                 {sense.count}
               </motion.div>
-              <p className="text-sm text-muted-foreground">things to {sense.sense.toLowerCase()}</p>
+              <p className="text-sm text-muted-foreground">{t('grounding.thingsTo')} {sense.sense.toLowerCase()}</p>
             </div>
           </div>
           
           <div className="text-right">
             <div className="text-xl font-bold text-primary">{formatTime(timer)}</div>
-            <p className="text-xs text-muted-foreground">elapsed</p>
+            <p className="text-xs text-muted-foreground">{t('grounding.elapsed')}</p>
           </div>
         </div>
 
@@ -260,13 +296,13 @@ export function GroundingExercise({ onClose }: GroundingExerciseProps) {
 
                 <div className="space-y-2">
                   <label className="text-sm text-muted-foreground">
-                    Item {currentInput + 1} of {sense.count}
+                    {t('grounding.item')} {currentInput + 1} {t('grounding.of')} {sense.count}
                   </label>
                   <Input
                     value={senseResponses[currentInput]}
                     onChange={(e) => handleInputChange(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder={`What do you ${sense.sense.toLowerCase()}?`}
+                    placeholder={`${t('grounding.whatDo')} ${sense.sense.toLowerCase()}?`}
                     className="h-12 rounded-xl text-lg"
                     autoFocus
                   />
@@ -299,11 +335,11 @@ export function GroundingExercise({ onClose }: GroundingExerciseProps) {
           {currentSense === SENSES.length - 1 && currentInput === sense.count - 1 ? (
             <>
               <Check className="w-4 h-4 mr-2" />
-              Complete
+              {t('common.done')}
             </>
           ) : (
             <>
-              Next
+              {t('common.next')}
               <ArrowRight className="w-4 h-4 ml-2" />
             </>
           )}

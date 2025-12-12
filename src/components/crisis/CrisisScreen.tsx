@@ -1,40 +1,42 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Phone, MessageCircle, Heart, AlertTriangle, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Phone, MessageCircle, Heart, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useApp } from '@/contexts/AppContext';
-
-const crisisResources = [
-  {
-    name: '988 Suicide & Crisis Lifeline',
-    description: 'Free 24/7 support for people in distress',
-    phone: '988',
-    type: 'primary',
-  },
-  {
-    name: 'Crisis Text Line',
-    description: 'Text HOME to 741741',
-    phone: '741741',
-    type: 'text',
-  },
-  {
-    name: 'National Alliance on Mental Illness',
-    description: 'NAMI Helpline - Mon-Fri, 10am-10pm ET',
-    phone: '1-800-950-NAMI',
-    type: 'support',
-  },
-];
-
-const copingStrategies = [
-  { emoji: '🧊', title: 'Hold Ice Cubes', description: 'Physical sensation to ground yourself' },
-  { emoji: '💧', title: 'Splash Cold Water', description: 'On your face to reset your nervous system' },
-  { emoji: '🌬️', title: 'Breathe Slowly', description: '4 counts in, 4 counts out' },
-  { emoji: '👁️', title: '5-4-3-2-1 Technique', description: 'Name things you can sense around you' },
-];
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function CrisisScreen() {
   const { setCurrentView, user } = useApp();
+  const { t } = useLanguage();
+
+  const crisisResources = [
+    {
+      name: t('crisis.vandrevalaFoundation'),
+      description: t('crisis.vandrevalaDesc'),
+      phone: '1860-2662-345',
+      type: 'primary',
+    },
+    {
+      name: t('crisis.iCall'),
+      description: t('crisis.iCallDesc'),
+      phone: '9152987821',
+      type: 'support',
+    },
+    {
+      name: t('crisis.nimhans'),
+      description: t('crisis.nimhansDesc'),
+      phone: '080-46110007',
+      type: 'support',
+    },
+  ];
+
+  const copingStrategies = [
+    { emoji: '🧊', title: t('crisis.holdIce'), description: t('crisis.holdIceDesc') },
+    { emoji: '💧', title: t('crisis.splashWater'), description: t('crisis.splashWaterDesc') },
+    { emoji: '🌬️', title: t('crisis.breatheSlowly'), description: t('crisis.breatheSlowlyDesc') },
+    { emoji: '👁️', title: t('crisis.grounding'), description: t('crisis.groundingDesc') },
+  ];
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -49,8 +51,8 @@ export function CrisisScreen() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-xl font-semibold text-foreground">Crisis Support</h1>
-            <p className="text-sm text-muted-foreground">You're not alone. Help is available.</p>
+            <h1 className="text-xl font-semibold text-foreground">{t('crisis.title')}</h1>
+            <p className="text-sm text-muted-foreground">{t('crisis.subtitle')}</p>
           </div>
         </div>
       </div>
@@ -67,19 +69,19 @@ export function CrisisScreen() {
                 <AlertTriangle className="w-6 h-6 text-destructive flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-foreground mb-1">
-                    If you're in immediate danger
+                    {t('crisis.immediate')}
                   </p>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Please call 911 or go to your nearest emergency room immediately.
+                    {t('crisis.call112')}
                   </p>
                   <Button
                     variant="crisis"
                     size="lg"
                     className="w-full"
-                    onClick={() => window.open('tel:911')}
+                    onClick={() => window.open('tel:112')}
                   >
                     <Phone className="w-4 h-4 mr-2" />
-                    Call 911
+                    {t('crisis.callButton')}
                   </Button>
                 </div>
               </div>
@@ -96,7 +98,7 @@ export function CrisisScreen() {
           >
             <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
               <Heart className="w-4 h-4" />
-              Your Emergency Contacts
+              {t('crisis.contacts')}
             </h3>
             <div className="space-y-2">
               {user.emergencyContacts.map((contact) => (
@@ -113,7 +115,7 @@ export function CrisisScreen() {
                         onClick={() => window.open(`tel:${contact.phone}`)}
                       >
                         <Phone className="w-4 h-4 mr-1" />
-                        Call
+                        {t('common.call')}
                       </Button>
                     </div>
                   </CardContent>
@@ -131,7 +133,7 @@ export function CrisisScreen() {
         >
           <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
             <Phone className="w-4 h-4" />
-            Crisis Hotlines
+            {t('crisis.hotline')}
           </h3>
           <div className="space-y-3">
             {crisisResources.map((resource, index) => (
@@ -147,17 +149,8 @@ export function CrisisScreen() {
                       size="sm"
                       onClick={() => window.open(`tel:${resource.phone}`)}
                     >
-                      {resource.type === 'text' ? (
-                        <>
-                          <MessageCircle className="w-4 h-4 mr-1" />
-                          Text
-                        </>
-                      ) : (
-                        <>
-                          <Phone className="w-4 h-4 mr-1" />
-                          Call
-                        </>
-                      )}
+                      <Phone className="w-4 h-4 mr-1" />
+                      {t('common.call')}
                     </Button>
                   </div>
                 </CardContent>
@@ -173,7 +166,7 @@ export function CrisisScreen() {
           transition={{ delay: 0.3 }}
         >
           <h3 className="text-sm font-medium text-muted-foreground mb-3">
-            Immediate Coping Strategies
+            {t('crisis.copingStrategies')}
           </h3>
           <Card variant="gradient">
             <CardContent className="p-4">
@@ -206,9 +199,9 @@ export function CrisisScreen() {
                   <span className="text-2xl">🌬️</span>
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium text-foreground">Try a Breathing Exercise</p>
+                  <p className="font-medium text-foreground">{t('crisis.breathingLink')}</p>
                   <p className="text-sm text-muted-foreground">
-                    Calm your nervous system
+                    {t('crisis.breathingDesc')}
                   </p>
                 </div>
                 <Button
@@ -216,7 +209,7 @@ export function CrisisScreen() {
                   size="sm"
                   onClick={() => setCurrentView('interventions')}
                 >
-                  Start
+                  {t('common.start')}
                 </Button>
               </div>
             </CardContent>
@@ -230,11 +223,7 @@ export function CrisisScreen() {
           transition={{ delay: 0.5 }}
           className="text-center text-xs text-muted-foreground p-4"
         >
-          <p>
-            This app is not a substitute for professional mental health treatment.
-            If you're experiencing a mental health crisis, please reach out to a
-            qualified professional or use the crisis resources above.
-          </p>
+          <p>{t('crisis.disclaimer')}</p>
         </motion.div>
       </div>
     </div>
