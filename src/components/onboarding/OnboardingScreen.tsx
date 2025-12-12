@@ -16,12 +16,6 @@ const steps = [
     icon: Heart,
   },
   {
-    id: 'privacy',
-    title: 'Data Security',
-    description: 'Your data is encrypted and stays on your device. AI analysis is optional.',
-    icon: Shield,
-  },
-  {
     id: 'name',
     title: "What's Your Name?",
     description: "Let's personalize your experience.",

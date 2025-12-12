@@ -8,6 +8,7 @@ import { JournalScreen } from '@/components/journal/JournalScreen';
 import { HistoryScreen } from '@/components/history/HistoryScreen';
 import { CrisisScreen } from '@/components/crisis/CrisisScreen';
 import { SettingsScreen } from '@/components/settings/SettingsScreen';
+import { MoodReportsScreen } from '@/components/reports/MoodReportsScreen';
 
 function AppContent() {
   const { currentView } = useApp();
@@ -21,6 +22,7 @@ function AppContent() {
     history: <HistoryScreen />,
     crisis: <CrisisScreen />,
     settings: <SettingsScreen />,
+    reports: <MoodReportsScreen />,
   };
 
   return screens[currentView] || <HomeScreen />;
