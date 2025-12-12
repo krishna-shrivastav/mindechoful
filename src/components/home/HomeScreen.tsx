@@ -8,24 +8,27 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useApp } from '@/contexts/AppContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { MOOD_CONFIG, MoodLevel } from '@/types/mental-health';
-
-const getGreeting = () => {
-  const hour = new Date().getHours();
-  if (hour < 12) return { text: 'Good morning', icon: Sun };
-  if (hour < 17) return { text: 'Good afternoon', icon: Cloud };
-  return { text: 'Good evening', icon: Moon };
-};
-
-const quickActions = [
-  { id: 'checkin', label: 'Check-in', icon: Heart, color: 'sage', view: 'checkin' as const },
-  { id: 'meditation', label: 'Meditate', icon: Wind, color: 'calm-blue', view: 'meditation' as const },
-  { id: 'journal', label: 'Journal', icon: BookOpen, color: 'lavender', view: 'journal' as const },
-  { id: 'reports', label: 'Reports', icon: BarChart3, color: 'coral', view: 'reports' as const },
-];
 
 export function HomeScreen() {
   const { user, moodHistory, setCurrentView } = useApp();
+  const { t, language } = useLanguage();
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return { text: t('home.greeting.morning'), icon: Sun };
+    if (hour < 17) return { text: t('home.greeting.afternoon'), icon: Cloud };
+    return { text: t('home.greeting.evening'), icon: Moon };
+  };
+
+  const quickActions = [
+    { id: 'checkin', label: t('home.checkIn'), icon: Heart, color: 'sage', view: 'checkin' as const },
+    { id: 'meditation', label: t('home.meditation'), icon: Wind, color: 'calm-blue', view: 'meditation' as const },
+    { id: 'journal', label: t('home.journal'), icon: BookOpen, color: 'lavender', view: 'journal' as const },
+    { id: 'reports', label: t('home.reports'), icon: BarChart3, color: 'coral', view: 'reports' as const },
+  ];
+
   const greeting = getGreeting();
   const GreetingIcon = greeting.icon;
 
@@ -51,7 +54,7 @@ export function HomeScreen() {
               <h1 className="text-xl font-semibold text-foreground">
                 {greeting.text}, {user?.name?.split(' ')[0] || 'Friend'}
               </h1>
-              <p className="text-sm text-muted-foreground">How are you feeling today?</p>
+              <p className="text-sm text-muted-foreground">{t('home.howAreYou')}</p>
             </div>
           </div>
           <Button
@@ -77,23 +80,23 @@ export function HomeScreen() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <Sparkles className="w-5 h-5 text-primary" />
-                    <span className="text-sm font-medium text-primary">Daily Check-in</span>
+                    <span className="text-sm font-medium text-primary">{t('checkin.title')}</span>
                   </div>
                   <h2 className="text-lg font-semibold text-foreground mb-2">
                     {todaysMoods.length > 0 
-                      ? "You've checked in today" 
-                      : "Ready for your check-in?"}
+                      ? t('home.checkedInToday') || "You've checked in today"
+                      : t('home.readyCheckin') || "Ready for your check-in?"}
                   </h2>
                   <p className="text-sm text-muted-foreground mb-4">
                     {todaysMoods.length > 0
-                      ? "Take another moment to reflect on how you're feeling now."
-                      : "Take a moment to reflect on your current state of mind."}
+                      ? t('home.reflectAgain') || "Take another moment to reflect on how you're feeling now."
+                      : t('home.reflectNow') || "Take a moment to reflect on your current state of mind."}
                   </p>
                   <Button
                     variant="calm"
                     onClick={() => setCurrentView('checkin')}
                   >
-                    {todaysMoods.length > 0 ? 'Check-in Again' : 'Start Check-in'}
+                    {todaysMoods.length > 0 ? t('home.checkinAgain') || 'Check-in Again' : t('common.start') + ' ' + t('home.checkIn')}
                   </Button>
                 </div>
                 {recentMood && (
@@ -112,7 +115,7 @@ export function HomeScreen() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <h3 className="text-sm font-medium text-muted-foreground mb-3">Quick Actions</h3>
+          <h3 className="text-sm font-medium text-muted-foreground mb-3">{t('home.quickActions')}</h3>
           <div className="grid grid-cols-4 gap-3">
             {quickActions.map((action, index) => {
               const Icon = action.icon;
@@ -157,7 +160,7 @@ export function HomeScreen() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-primary" />
-                    Recent Moods
+                    {t('home.recentMoods') || 'Recent Moods'}
                   </CardTitle>
                   <Button
                     variant="ghost"
@@ -165,7 +168,7 @@ export function HomeScreen() {
                     onClick={() => setCurrentView('history')}
                     className="text-xs"
                   >
-                    View All
+                    {t('home.viewAll') || 'View All'}
                   </Button>
                 </div>
               </CardHeader>
@@ -178,7 +181,7 @@ export function HomeScreen() {
                     >
                       <span className="text-2xl">{MOOD_CONFIG[entry.mood].emoji}</span>
                       <span className="text-xs text-muted-foreground">
-                        {index === 0 ? 'Now' : new Date(entry.date).toLocaleDateString('en-US', { weekday: 'short' })}
+                        {index === 0 ? (t('common.now') || 'Now') : new Date(entry.date).toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-US', { weekday: 'short' })}
                       </span>
                     </div>
                   ))}
@@ -201,9 +204,9 @@ export function HomeScreen() {
                   <Brain className="w-7 h-7 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-foreground">Mindfulness Exercises</h3>
+                  <h3 className="font-semibold text-foreground">{t('home.mindfulnessExercises') || 'Mindfulness Exercises'}</h3>
                   <p className="text-sm text-muted-foreground">
-                    Breathing techniques, CBT exercises & more
+                    {t('home.breathingDesc') || 'Breathing techniques, CBT exercises & more'}
                   </p>
                 </div>
                 <Button
@@ -231,9 +234,9 @@ export function HomeScreen() {
                   <AlertTriangle className="w-6 h-6 text-destructive" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-foreground">Need Immediate Help?</h3>
+                  <h3 className="font-semibold text-foreground">{t('crisis.immediate')}</h3>
                   <p className="text-sm text-muted-foreground">
-                    Access crisis resources and support
+                    {t('home.crisisDesc') || 'Access crisis resources and support'}
                   </p>
                 </div>
                 <Button
@@ -241,7 +244,7 @@ export function HomeScreen() {
                   size="sm"
                   onClick={() => setCurrentView('crisis')}
                 >
-                  Get Help
+                  {t('home.getHelp') || 'Get Help'}
                 </Button>
               </div>
             </CardContent>
@@ -253,10 +256,10 @@ export function HomeScreen() {
       <div className="fixed bottom-0 left-0 right-0 bg-card/80 backdrop-blur-lg border-t border-border/50 px-6 py-3">
         <div className="flex justify-around items-center max-w-md mx-auto">
           {[
-            { icon: Heart, label: 'Home', view: 'home' as const, active: true },
-            { icon: Calendar, label: 'History', view: 'history' as const },
-            { icon: Brain, label: 'Tools', view: 'interventions' as const },
-            { icon: BookOpen, label: 'Journal', view: 'journal' as const },
+            { icon: Heart, label: t('nav.home') || 'Home', view: 'home' as const, active: true },
+            { icon: Calendar, label: t('home.history'), view: 'history' as const },
+            { icon: Brain, label: t('nav.tools') || 'Tools', view: 'interventions' as const },
+            { icon: BookOpen, label: t('home.journal'), view: 'journal' as const },
           ].map((item) => {
             const Icon = item.icon;
             return (
