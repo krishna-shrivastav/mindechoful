@@ -19,7 +19,7 @@ const getGreeting = () => {
 
 const quickActions = [
   { id: 'checkin', label: 'Check-in', icon: Heart, color: 'sage', view: 'checkin' as const },
-  { id: 'breathe', label: 'Breathe', icon: Wind, color: 'calm-blue', view: 'interventions' as const },
+  { id: 'meditation', label: 'Meditate', icon: Wind, color: 'calm-blue', view: 'meditation' as const },
   { id: 'journal', label: 'Journal', icon: BookOpen, color: 'lavender', view: 'journal' as const },
   { id: 'reports', label: 'Reports', icon: BarChart3, color: 'coral', view: 'reports' as const },
 ];

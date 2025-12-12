@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Shield, Phone, ArrowRight, Sparkles, Users } from 'lucide-react';
+import { Heart, Phone, ArrowRight, Sparkles, Globe, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useApp } from '@/contexts/AppContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { LanguageSelector } from '@/components/LanguageSelector';
 import { EmergencyContact } from '@/types/mental-health';
 
 const steps = [
@@ -14,6 +16,12 @@ const steps = [
     title: 'Welcome to MindfulMe',
     description: 'Your personal companion for mental wellness and stress management.',
     icon: Heart,
+  },
+  {
+    id: 'language',
+    title: 'Choose Your Language',
+    description: 'Select your preferred language.',
+    icon: Globe,
   },
   {
     id: 'name',
@@ -124,6 +132,10 @@ export function OnboardingScreen() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
+                {step.id === 'language' && (
+                  <LanguageSelector />
+                )}
+
                 {step.id === 'name' && (
                   <div className="space-y-4">
                     <div>

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppProvider, useApp } from '@/contexts/AppContext';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 import { OnboardingScreen } from '@/components/onboarding/OnboardingScreen';
 import { HomeScreen } from '@/components/home/HomeScreen';
 import { CheckInScreen } from '@/components/checkin/CheckInScreen';
@@ -9,11 +10,39 @@ import { HistoryScreen } from '@/components/history/HistoryScreen';
 import { CrisisScreen } from '@/components/crisis/CrisisScreen';
 import { SettingsScreen } from '@/components/settings/SettingsScreen';
 import { MoodReportsScreen } from '@/components/reports/MoodReportsScreen';
+import { MeditationPlayer } from '@/components/meditation/MeditationPlayer';
+import { AuthScreen } from '@/components/auth/AuthScreen';
+import { supabase } from '@/integrations/supabase/client';
 
 function AppContent() {
   const { currentView } = useApp();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
-  const screens = {
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session?.user);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session?.user);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen gradient-calm flex items-center justify-center">
+        <div className="animate-pulse text-primary text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <AuthScreen onAuthSuccess={() => setIsAuthenticated(true)} />;
+  }
+
+  const screens: Record<string, React.ReactNode> = {
     onboarding: <OnboardingScreen />,
     home: <HomeScreen />,
     checkin: <CheckInScreen />,
@@ -23,6 +52,7 @@ function AppContent() {
     crisis: <CrisisScreen />,
     settings: <SettingsScreen />,
     reports: <MoodReportsScreen />,
+    meditation: <MeditationPlayer />,
   };
 
   return screens[currentView] || <HomeScreen />;
@@ -30,11 +60,13 @@ function AppContent() {
 
 const Index = () => {
   return (
-    <AppProvider>
-      <div className="min-h-screen bg-background">
-        <AppContent />
-      </div>
-    </AppProvider>
+    <LanguageProvider>
+      <AppProvider>
+        <div className="min-h-screen bg-background">
+          <AppContent />
+        </div>
+      </AppProvider>
+    </LanguageProvider>
   );
 };
 

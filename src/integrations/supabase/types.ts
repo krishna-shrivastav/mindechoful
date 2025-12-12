@@ -14,7 +14,203 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      check_ins: {
+        Row: {
+          ai_insights: string | null
+          created_at: string
+          facial_analysis: Json | null
+          id: string
+          mood: number
+          notes: string | null
+          profile_id: string | null
+          stress_level: number | null
+          voice_analysis: Json | null
+        }
+        Insert: {
+          ai_insights?: string | null
+          created_at?: string
+          facial_analysis?: Json | null
+          id?: string
+          mood: number
+          notes?: string | null
+          profile_id?: string | null
+          stress_level?: number | null
+          voice_analysis?: Json | null
+        }
+        Update: {
+          ai_insights?: string | null
+          created_at?: string
+          facial_analysis?: Json | null
+          id?: string
+          mood?: number
+          notes?: string | null
+          profile_id?: string | null
+          stress_level?: number | null
+          voice_analysis?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "check_ins_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emergency_contacts: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          phone: string
+          profile_id: string | null
+          relationship: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          phone: string
+          profile_id?: string | null
+          relationship?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string
+          profile_id?: string | null
+          relationship?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_contacts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_entries: {
+        Row: {
+          ai_analysis: string | null
+          content: string
+          created_at: string
+          id: string
+          mood: number | null
+          profile_id: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          ai_analysis?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          mood?: number | null
+          profile_id?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          ai_analysis?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          mood?: number | null
+          profile_id?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mood_entries: {
+        Row: {
+          created_at: string
+          id: string
+          mood: number
+          note: string | null
+          profile_id: string | null
+          stress_level: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mood: number
+          note?: string | null
+          profile_id?: string | null
+          stress_level?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mood?: number
+          note?: string | null
+          profile_id?: string | null
+          stress_level?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mood_entries_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          check_in_reminders: boolean | null
+          created_at: string
+          id: string
+          name: string
+          notifications_enabled: boolean | null
+          onboarding_complete: boolean
+          preferred_language: string
+          reminder_time: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          check_in_reminders?: boolean | null
+          created_at?: string
+          id?: string
+          name: string
+          notifications_enabled?: boolean | null
+          onboarding_complete?: boolean
+          preferred_language?: string
+          reminder_time?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          check_in_reminders?: boolean | null
+          created_at?: string
+          id?: string
+          name?: string
+          notifications_enabled?: boolean | null
+          onboarding_complete?: boolean
+          preferred_language?: string
+          reminder_time?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
