@@ -4,32 +4,27 @@ import { X, Play, Pause, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-interface BreathingExercise478Props {
+interface BoxBreathingExerciseProps {
   onClose: () => void;
 }
 
-type Phase = 'inhale' | 'hold' | 'exhale';
+type Phase = 'inhale' | 'hold1' | 'exhale' | 'hold2';
 
-const PHASE_DURATIONS: Record<Phase, number> = {
-  inhale: 4,
-  hold: 7,
-  exhale: 8,
-};
-
-export function BreathingExercise478({ onClose }: BreathingExercise478Props) {
+export function BoxBreathingExercise({ onClose }: BoxBreathingExerciseProps) {
   const { t } = useLanguage();
   const [isActive, setIsActive] = useState(false);
   const [phase, setPhase] = useState<Phase>('inhale');
-  const [count, setCount] = useState(PHASE_DURATIONS.inhale);
+  const [count, setCount] = useState(4);
   const [cycles, setCycles] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  const PHASE_LABELS: Record<Phase, string> = {
+  const phaseText: Record<Phase, string> = {
     inhale: t('breathing.inhale'),
-    hold: t('breathing.hold'),
+    hold1: t('breathing.hold'),
     exhale: t('breathing.exhale'),
+    hold2: t('breathing.hold'),
   };
 
   const speakPhase = (phaseKey: Phase) => {
@@ -39,8 +34,9 @@ export function BreathingExercise478({ onClose }: BreathingExercise478Props) {
     
     const voiceText: Record<Phase, string> = {
       inhale: t('voice.inhale'),
-      hold: t('voice.hold'),
+      hold1: t('voice.hold'),
       exhale: t('voice.exhale'),
+      hold2: t('voice.hold'),
     };
     
     const utterance = new SpeechSynthesisUtterance(voiceText[phaseKey]);
@@ -53,7 +49,7 @@ export function BreathingExercise478({ onClose }: BreathingExercise478Props) {
 
   useEffect(() => {
     if (!isActive) return;
-
+    
     const timer = setInterval(() => {
       setTotalTime(prev => prev + 1);
       setCount(prev => {
@@ -61,37 +57,31 @@ export function BreathingExercise478({ onClose }: BreathingExercise478Props) {
           setPhase(current => {
             let next: Phase;
             switch (current) {
-              case 'inhale':
-                next = 'hold';
-                break;
-              case 'hold':
-                next = 'exhale';
-                break;
-              case 'exhale':
+              case 'inhale': next = 'hold1'; break;
+              case 'hold1': next = 'exhale'; break;
+              case 'exhale': next = 'hold2'; break;
+              case 'hold2': 
                 next = 'inhale';
                 setCycles(c => c + 1);
                 break;
-              default:
-                next = 'inhale';
+              default: next = 'inhale';
             }
             speakPhase(next);
             return next;
           });
-          
-          const nextPhase = phase === 'inhale' ? 'hold' : phase === 'hold' ? 'exhale' : 'inhale';
-          return PHASE_DURATIONS[nextPhase];
+          return 4;
         }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isActive, phase, voiceEnabled]);
+  }, [isActive, voiceEnabled]);
 
   const reset = () => {
     setIsActive(false);
     setPhase('inhale');
-    setCount(PHASE_DURATIONS.inhale);
+    setCount(4);
     setCycles(0);
     setTotalTime(0);
     window.speechSynthesis?.cancel();
@@ -103,27 +93,7 @@ export function BreathingExercise478({ onClose }: BreathingExercise478Props) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const getPhaseColor = () => {
-    switch (phase) {
-      case 'inhale':
-        return 'bg-calm-blue-light';
-      case 'hold':
-        return 'bg-lavender-light';
-      case 'exhale':
-        return 'bg-sage-light';
-    }
-  };
-
-  const getCircleScale = () => {
-    if (!isActive) return 1;
-    if (phase === 'inhale') return 1.4;
-    if (phase === 'exhale') return 0.9;
-    return 1.2;
-  };
-
   const handleStart = () => {
-    setPhase('inhale');
-    setCount(PHASE_DURATIONS.inhale);
     setIsActive(true);
     speakPhase('inhale');
   };
@@ -162,10 +132,10 @@ export function BreathingExercise478({ onClose }: BreathingExercise478Props) {
       <motion.div
         initial={{ scale: 0.9 }}
         animate={{ scale: 1 }}
-        className="text-center w-full max-w-sm"
+        className="text-center"
       >
-        <h2 className="text-2xl font-bold mb-2 text-foreground">{t('interventions.478Breathing')}</h2>
-        <p className="text-muted-foreground mb-8">{t('interventions.478BreathingDesc')}</p>
+        <h2 className="text-2xl font-bold mb-2 text-foreground">{t('interventions.boxBreathing')}</h2>
+        <p className="text-muted-foreground mb-6">{t('interventions.boxBreathingDesc')}</p>
 
         {/* Stats */}
         <div className="flex justify-center gap-8 mb-8">
@@ -178,57 +148,58 @@ export function BreathingExercise478({ onClose }: BreathingExercise478Props) {
             <p className="text-xs text-muted-foreground">{t('meditation.duration')}</p>
           </div>
         </div>
-
-        {/* Breathing Circle */}
+        
         <div className="relative mb-8">
           <motion.div
             animate={{
-              scale: getCircleScale(),
+              scale: isActive ? (phase === 'inhale' ? 1.3 : phase === 'exhale' ? 1 : 1.15) : 1,
             }}
-            transition={{ duration: PHASE_DURATIONS[phase], ease: 'easeInOut' }}
-            className={`w-56 h-56 mx-auto rounded-full flex items-center justify-center transition-colors duration-500 ${getPhaseColor()}`}
+            transition={{ duration: 4, ease: 'easeInOut' }}
+            className={`w-48 h-48 mx-auto rounded-full flex items-center justify-center transition-colors duration-1000 ${
+              phase === 'inhale' ? 'bg-sage-light' :
+              phase === 'hold1' || phase === 'hold2' ? 'bg-lavender-light' :
+              'bg-coral-light'
+            }`}
           >
             <div className="text-center">
               <motion.div
                 key={count}
                 initial={{ scale: 1.2, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="text-6xl font-bold text-foreground"
+                className="text-5xl font-bold text-foreground"
               >
                 {count}
               </motion.div>
               <div className="text-lg text-muted-foreground mt-2">
-                {isActive ? PHASE_LABELS[phase] : t('common.start')}
+                {isActive ? phaseText[phase] : t('common.start')}
               </div>
             </div>
           </motion.div>
-
-          {/* Animated ring */}
+          
           {isActive && (
             <motion.div
-              className="absolute inset-0 rounded-full border-4 border-primary/20"
-              animate={{ scale: [1, 1.15, 1] }}
-              transition={{ duration: PHASE_DURATIONS[phase], repeat: Infinity }}
-              style={{ width: '14rem', height: '14rem', margin: 'auto' }}
+              className="absolute inset-0 rounded-full border-4 border-primary/30"
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 4, repeat: Infinity }}
+              style={{ width: '12rem', height: '12rem', margin: 'auto' }}
             />
           )}
         </div>
 
         {/* Phase indicator */}
         <div className="flex justify-center gap-4 mb-8">
-          {(['inhale', 'hold', 'exhale'] as Phase[]).map((p) => (
+          {(['inhale', 'hold1', 'exhale', 'hold2'] as Phase[]).map((p) => (
             <div
               key={p}
               className={`flex flex-col items-center ${phase === p && isActive ? 'opacity-100' : 'opacity-40'}`}
             >
               <div className={`w-3 h-3 rounded-full mb-1 ${phase === p && isActive ? 'bg-primary' : 'bg-border'}`} />
-              <span className="text-xs capitalize">{PHASE_LABELS[p]}</span>
-              <span className="text-xs text-muted-foreground">{PHASE_DURATIONS[p]}s</span>
+              <span className="text-xs">{p === 'hold1' || p === 'hold2' ? t('breathing.hold') : p === 'inhale' ? t('breathing.inhale') : t('breathing.exhale')}</span>
+              <span className="text-xs text-muted-foreground">4s</span>
             </div>
           ))}
         </div>
 
-        {/* Controls */}
         <div className="flex gap-3 justify-center">
           <Button
             variant={isActive ? 'soft' : 'calm'}
@@ -252,10 +223,6 @@ export function BreathingExercise478({ onClose }: BreathingExercise478Props) {
             </Button>
           )}
         </div>
-
-        <p className="text-muted-foreground mt-8 text-sm max-w-xs mx-auto">
-          {t('voice.relax')}
-        </p>
       </motion.div>
     </motion.div>
   );
