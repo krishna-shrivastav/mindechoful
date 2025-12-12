@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
 import { Language, getTranslation } from '@/i18n/translations';
 
 interface LanguageContextType {
@@ -9,15 +9,36 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+// Detect system language and map to supported languages
+const detectSystemLanguage = (): Language => {
+  const browserLang = navigator.language.toLowerCase();
+  
+  // Check for Hindi
+  if (browserLang.startsWith('hi')) {
+    return 'hi';
+  }
+  
+  // Default to English for all other languages
+  return 'en';
+};
+
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
     const saved = localStorage.getItem('app-language');
-    return (saved as Language) || 'en';
+    if (saved && ['en', 'hi', 'hinglish'].includes(saved)) {
+      return saved as Language;
+    }
+    // Auto-detect system language on first visit
+    return detectSystemLanguage();
   });
+
+  // Save language preference when it changes
+  useEffect(() => {
+    localStorage.setItem('app-language', language);
+  }, [language]);
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem('app-language', lang);
   }, []);
 
   const t = useCallback((key: string): string => {

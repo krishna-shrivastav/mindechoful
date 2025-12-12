@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { useApp } from '@/contexts/AppContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { MOOD_CONFIG, MoodLevel } from '@/types/mental-health';
 import { FacialAnalysis } from './FacialAnalysis';
 import { VoiceCheckIn } from './VoiceCheckIn';
@@ -16,6 +17,7 @@ const moodOptions: MoodLevel[] = ['great', 'good', 'okay', 'low', 'struggling'];
 
 export function CheckInScreen() {
   const { addCheckIn, setCurrentView } = useApp();
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [step, setStep] = useState(0);
   const [selectedMood, setSelectedMood] = useState<MoodLevel | null>(null);
@@ -85,12 +87,12 @@ export function CheckInScreen() {
   const getRecommendation = () => {
     if (!selectedMood) return '';
     if (selectedMood === 'struggling' || selectedMood === 'low') {
-      return "I'm here for you. Would you like to try a calming breathing exercise?";
+      return t('checkin.recommendation.low') || "I'm here for you. Would you like to try a calming breathing exercise?";
     }
     if (selectedMood === 'okay') {
-      return "That's okay. Small steps count. How about some gentle mindfulness?";
+      return t('checkin.recommendation.okay') || "That's okay. Small steps count. How about some gentle mindfulness?";
     }
-    return "Wonderful! Keep nurturing that positive energy.";
+    return t('checkin.recommendation.good') || "Wonderful! Keep nurturing that positive energy.";
   };
 
   if (isComplete) {
@@ -109,7 +111,7 @@ export function CheckInScreen() {
           >
             <Check className="w-12 h-12 text-primary" />
           </motion.div>
-          <h2 className="text-2xl font-bold mb-3 text-foreground">Check-in Complete</h2>
+          <h2 className="text-2xl font-bold mb-3 text-foreground">{t('checkin.complete')}</h2>
           <p className="text-muted-foreground mb-2">{getRecommendation()}</p>
           <div className="text-6xl my-6 animate-float">
             {selectedMood && MOOD_CONFIG[selectedMood].emoji}
@@ -119,7 +121,7 @@ export function CheckInScreen() {
           {isLoadingAI && (
             <div className="flex items-center justify-center gap-2 text-muted-foreground mb-4">
               <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Analyzing your mood...</span>
+              <span>{t('checkin.analyzing') || 'Analyzing your mood...'}</span>
             </div>
           )}
 
@@ -132,7 +134,7 @@ export function CheckInScreen() {
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Sparkles className="w-5 h-5 text-primary" />
-                    <span className="font-medium text-foreground">AI Insight</span>
+                    <span className="font-medium text-foreground">{t('reports.insights')}</span>
                   </div>
                   <p className="text-sm text-muted-foreground whitespace-pre-line">{aiInsight}</p>
                 </CardContent>
@@ -143,9 +145,9 @@ export function CheckInScreen() {
           {facialResult && (
             <Card variant="calm" className="mb-6 text-left">
               <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground mb-1">Facial Analysis Result</p>
+                <p className="text-sm text-muted-foreground mb-1">{t('checkin.facial')} {t('common.result') || 'Result'}</p>
                 <p className="font-medium text-foreground">
-                  {facialResult.emotion} • {facialResult.stress} stress
+                  {facialResult.emotion} • {facialResult.stress} {t('checkin.stress').toLowerCase()}
                 </p>
               </CardContent>
             </Card>
@@ -153,11 +155,11 @@ export function CheckInScreen() {
 
           <div className="flex gap-3 justify-center mt-6">
             <Button variant="soft" onClick={() => setCurrentView('home')}>
-              Go Home
+              {t('common.goHome') || 'Go Home'}
             </Button>
             {(selectedMood === 'struggling' || selectedMood === 'low') && (
               <Button variant="calm" onClick={() => setCurrentView('interventions')}>
-                Try Breathing
+                {t('checkin.tryBreathing') || 'Try Breathing'}
               </Button>
             )}
           </div>
@@ -179,8 +181,8 @@ export function CheckInScreen() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-xl font-semibold text-foreground">Daily Check-in</h1>
-            <p className="text-sm text-muted-foreground">Step {step + 1} of 3</p>
+            <h1 className="text-xl font-semibold text-foreground">{t('checkin.title')}</h1>
+            <p className="text-sm text-muted-foreground">{t('common.step') || 'Step'} {step + 1} {t('common.of') || 'of'} 3</p>
           </div>
         </div>
         
@@ -211,10 +213,10 @@ export function CheckInScreen() {
                 <CardContent className="p-6">
                   <div className="flex items-center gap-2 mb-4">
                     <Sparkles className="w-5 h-5 text-primary" />
-                    <h2 className="text-lg font-semibold">How are you feeling right now?</h2>
+                    <h2 className="text-lg font-semibold">{t('checkin.subtitle')}</h2>
                   </div>
                   <p className="text-muted-foreground mb-6">
-                    There's no right or wrong answer. Just be honest with yourself.
+                    {t('checkin.honest') || "There's no right or wrong answer. Just be honest with yourself."}
                   </p>
                   
                   {/* Facial & Voice Analysis Buttons */}
@@ -224,14 +226,14 @@ export function CheckInScreen() {
                       onClick={() => setShowFacialAnalysis(true)}
                     >
                       <Camera className="w-4 h-4 mr-2" />
-                      {facialResult ? 'Analyzed ✓' : 'Camera'}
+                      {facialResult ? (t('common.analyzed') || 'Analyzed') + ' ✓' : t('checkin.camera') || 'Camera'}
                     </Button>
                     <Button
                       variant="soft"
                       onClick={() => setShowVoiceCheckIn(true)}
                     >
                       <Mic className="w-4 h-4 mr-2" />
-                      {voiceResult ? 'Analyzed ✓' : 'Voice'}
+                      {voiceResult ? (t('common.analyzed') || 'Analyzed') + ' ✓' : t('checkin.voiceBtn') || 'Voice'}
                     </Button>
                   </div>
                   
@@ -252,8 +254,8 @@ export function CheckInScreen() {
                         >
                           <span className="text-3xl">{config.emoji}</span>
                           <div className="text-left">
-                            <div className="font-medium text-foreground">{config.label}</div>
-                            <div className="text-sm text-muted-foreground">{config.description}</div>
+                            <div className="font-medium text-foreground">{t(`mood.${mood}`)}</div>
+                            <div className="text-sm text-muted-foreground">{t(`mood.${mood}.desc`)}</div>
                           </div>
                           {isSelected && (
                             <motion.div
@@ -277,7 +279,7 @@ export function CheckInScreen() {
                 className="w-full"
                 size="lg"
               >
-                Continue
+                {t('common.continue')}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </motion.div>
@@ -293,19 +295,19 @@ export function CheckInScreen() {
             >
               <Card variant="glass" className="mb-6">
                 <CardContent className="p-6">
-                  <h2 className="text-lg font-semibold mb-2">How's your stress level?</h2>
+                  <h2 className="text-lg font-semibold mb-2">{t('checkin.stressQuestion') || "How's your stress level?"}</h2>
                   <p className="text-muted-foreground mb-8">
-                    Rate from 1 (very calm) to 10 (very stressed)
+                    {t('checkin.stressDesc') || 'Rate from 1 (very calm) to 10 (very stressed)'}
                   </p>
                   
                   <div className="space-y-6">
                     <div className="text-center">
                       <span className="text-5xl font-bold text-primary">{stressLevel[0]}</span>
                       <p className="text-muted-foreground mt-2">
-                        {stressLevel[0] <= 3 ? 'Calm & Relaxed' :
-                         stressLevel[0] <= 5 ? 'Manageable' :
-                         stressLevel[0] <= 7 ? 'Somewhat Stressed' :
-                         'High Stress'}
+                        {stressLevel[0] <= 3 ? (t('stress.calm') || 'Calm & Relaxed') :
+                         stressLevel[0] <= 5 ? (t('stress.manageable') || 'Manageable') :
+                         stressLevel[0] <= 7 ? (t('stress.somewhat') || 'Somewhat Stressed') :
+                         (t('stress.high') || 'High Stress')}
                       </p>
                     </div>
                     
@@ -319,8 +321,8 @@ export function CheckInScreen() {
                     />
                     
                     <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Very Calm</span>
-                      <span>Very Stressed</span>
+                      <span>{t('stress.veryCalm') || 'Very Calm'}</span>
+                      <span>{t('stress.veryStressed') || 'Very Stressed'}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -332,14 +334,14 @@ export function CheckInScreen() {
                   onClick={() => setStep(0)}
                   size="lg"
                 >
-                  Back
+                  {t('common.back')}
                 </Button>
                 <Button
                   onClick={() => setStep(2)}
                   className="flex-1"
                   size="lg"
                 >
-                  Continue
+                  {t('common.continue')}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
@@ -356,20 +358,20 @@ export function CheckInScreen() {
             >
               <Card variant="glass" className="mb-6">
                 <CardContent className="p-6">
-                  <h2 className="text-lg font-semibold mb-2">Anything on your mind?</h2>
+                  <h2 className="text-lg font-semibold mb-2">{t('checkin.notes')}</h2>
                   <p className="text-muted-foreground mb-6">
-                    This is optional. Share what's going on or skip ahead.
+                    {t('checkin.notesOptional') || 'This is optional. Share what\'s going on or skip ahead.'}
                   </p>
                   
                   <Textarea
-                    placeholder="I'm feeling this way because..."
+                    placeholder={t('checkin.notes.placeholder')}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     className="min-h-[150px] rounded-xl resize-none border-border/50"
                   />
                   
                   <p className="text-xs text-muted-foreground mt-3">
-                    Your notes are private and will be analyzed by AI to provide personalized insights.
+                    {t('checkin.notesPrivate') || 'Your notes are private and will be analyzed by AI to provide personalized insights.'}
                   </p>
                 </CardContent>
               </Card>
@@ -380,14 +382,14 @@ export function CheckInScreen() {
                   onClick={() => setStep(1)}
                   size="lg"
                 >
-                  Back
+                  {t('common.back')}
                 </Button>
                 <Button
                   onClick={handleComplete}
                   className="flex-1"
                   size="lg"
                 >
-                  Complete Check-in
+                  {t('checkin.complete')}
                   <Check className="w-4 h-4 ml-2" />
                 </Button>
               </div>
